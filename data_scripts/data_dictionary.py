@@ -67,11 +67,13 @@ data_dict_df = pd.DataFrame.from_dict(top50_songs_df_dict, orient='index',
 
 pickled_data_dict = pickle.dumps(data_dict_df)
 
-#would need to edit with your absolute path of pipeline.conf file
-#this_folder = os.path.dirname(os.path.abspath(__file__))
-#file_conf = os.path.join(this_folder, 'pipeline.conf')
-#parser = configparser.ConfigParser()
-#parser.read(file_conf)
+# assuming the 'pipeline.conf' file is in the same location as the 'pipeline_template.conf' file
+current_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.dirname(current_directory)
+file_conf = os.path.join(parent_directory, 'pipeline.conf')
+parser = configparser.ConfigParser()
+parser.read(file_conf)
+
 bucket = parser.get("aws_boto_credentials", "bucket_name")
 
 s3 = boto3.resource('s3')

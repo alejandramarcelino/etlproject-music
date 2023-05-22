@@ -8,14 +8,15 @@ import pandas as pd
 import boto3
 import pickle
 from datetime import datetime
-import pprint
+#import pprint
 
-#this_folder = os.path.dirname(os.path.abspath(__file__))
-#file_conf = os.path.join(this_folder, 'pipeline.conf')
-
+# assuming the 'pipeline.conf' file is in the same location as the 'pipeline_template.conf' file
+current_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.dirname(current_directory)
+file_conf = os.path.join(parent_directory, 'pipeline.conf')
 parser = configparser.ConfigParser()
-# instead of file_conf, write the absolute path of your pipeline.conf file, if you choose to get credentials this way
-#parser.read(file_conf)
+parser.read(file_conf)
+
 spotipy_client_id = parser.get("spotipy_credentials", "CLIENT_ID")
 spotipy_client_secret = parser.get("spotipy_credentials", "CLIENT_SECRET")
 

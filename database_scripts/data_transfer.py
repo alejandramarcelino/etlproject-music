@@ -5,11 +5,12 @@ from database import Artist, Album, Genre
 from database_functions import check_value_exists, get_dataframe_from_s3
 from datetime import datetime
 
-# would need to edit with absolute path of pipeline.conf file
-#this_folder = os.path.dirname(os.path.abspath(__file__))
-#file_conf = os.path.join(this_folder, 'pipeline.conf')
-#parser = configparser.ConfigParser()
-#parser.read(file_conf)
+# assuming the 'pipeline.conf' file is in the same location as the 'pipeline_template.conf' file
+current_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.dirname(current_directory)
+file_conf = os.path.join(parent_directory, 'pipeline.conf')
+parser = configparser.ConfigParser()
+parser.read(file_conf)
 
 database_url = parser.get("database", "DB_URL")
 

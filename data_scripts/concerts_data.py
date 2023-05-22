@@ -64,10 +64,13 @@ if __name__ == '__main__':
     df['concert_id']=get_ids(urls)
     pickled_df = pickle.dumps(df)
     
-    this_folder = os.path.dirname(os.path.abspath(__file__))
-    file_conf = os.path.join(this_folder, 'pipeline.conf')
+    # assuming the 'pipeline.conf' file is in the same location as the 'pipeline_template.conf' file
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    parent_directory = os.path.dirname(current_directory)
+    file_conf = os.path.join(parent_directory, 'pipeline.conf')
     parser = configparser.ConfigParser()
     parser.read(file_conf)
+    
     bucket_name = parser.get("aws_boto_credentials", "bucket_name")
     
     s3 = boto3.resource('s3')

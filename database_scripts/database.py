@@ -3,11 +3,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy import Column, ForeignKey, Integer, String, SmallInteger, Date, Float, Boolean, Table, Time
 import os, configparser
 
-# would need to edit with absolute path of you pipeline.conf file
-#this_folder = os.path.dirname(os.path.abspath(__file__))
-#file_conf = os.path.join(this_folder, 'pipeline.conf')
-#parser = configparser.ConfigParser()
-#parser.read(file_conf)
+# assuming the 'pipeline.conf' file is in the same location as the 'pipeline_template.conf' file
+current_directory = os.path.dirname(os.path.abspath(__file__))
+parent_directory = os.path.dirname(current_directory)
+file_conf = os.path.join(parent_directory, 'pipeline.conf')
+parser = configparser.ConfigParser()
+parser.read(file_conf)
+
 database_url = parser.get("database", "DB_URL")
 
 engine = create_engine(database_url, pool_pre_ping=True)
@@ -27,7 +29,7 @@ metadata.bind = engine
 artist_genre_table = Table(
     'artist_genre', 
     Base.metadata,
-    Column('artist_id', String, ForeignKey('artists.artist_.id')),
+    Column('artist_id', String, ForeignKey('artists.artist_id')),
     Column('genre_id', SmallInteger, ForeignKey('genres.genre_id'))
 )
 
@@ -41,15 +43,15 @@ artist_album_table = Table(
     Column('album_id', String, ForeignKey('albums.album_id'))
 )
 
-# Define the table to join the 'artists' and 'top_tracks'' tables
-# ~ simple many-to-many relationship between Artist and TopTrack
-# 1 artist can have multiple songs in top songs playlist
-# and 1 song in the playlist can have multiple artists
-artist_toptrack_table = Table(
-    'artist_toptrack',
+# to connect track id and artists
+# encountered error when linking artist to top_tracks table since track_id references audio_features table
+# so the temporary workaround is to reference audio_features table track_id
+
+artist_track_table = Table(
+    'artist_track',
     Base.metadata,
     Column('artist_id', String, ForeignKey('artists.artist_id')),
-    Column('track_id', String, ForeignKey('top_tracks.track_id'))
+    Column('track_id', String, ForeignKey('audio_features.track_id'))
 )
 
 # ~ simple many-to-many relatinoship between Concert and Genre
@@ -64,7 +66,7 @@ concert_genre_table = Table(
 festival_genre_table = Table(
     'festival_genre',
     Base.metadata,
-    Column('festival_id', Integer, ForeignKey('festivals.festival_id')),
+    Column('festival_id', String, ForeignKey('festivals.festival_id')),
     Column('genre_id', SmallInteger, ForeignKey('genres.genre_id'))
 )
 
@@ -82,15 +84,15 @@ class Artist(Base):
 
     # 'artist' attribute in Album connects Album to Artist
     # artist_album_table is junction table for Artist and Album
-    albums = relationship('Album', seconday = artist_album_table, back_populates = 'artist')
+    albums = relationship('Album', secondary = artist_album_table, back_populates = 'artist')
     
     # 'artist' attribute in TopTrack connects TopTrack to Artist
     # artist_toptrack_table is junction table for Artist and TopTrack
-    toptrack = relationship('TopTrack',secondary = artist_toptrack_table, back_populates = 'artist')
+    track = relationship('AudioFeatures',secondary = artist_track_table, back_populates = 'artist')
 
 class Genre(Base):
     __tablename__ = 'genres'
-    genre_id = Column(String, primary_key = True, autoincrement = True)
+    genre_id = Column(SmallInteger, primary_key = True, autoincrement = True)
     name = Column(String, nullable = False)
 
     # 'genre' attribute in Artist connects Artist to Genre
@@ -141,7 +143,7 @@ class TopTrack(Base):
     
     # 'toptrack' attribute in Artist links Artist to TopTrack
     # artist_toptrack_table is junction table for Artist and TopTrack
-    artist = relationship('Artist', secondary = artist_toptrack_table, back_populates = 'toptrack')
+    #artist = relationship('Artist', secondary = artist_toptrack_table, back_populates = 'toptrack')
 
     
 class AudioFeatures(Base):
@@ -163,6 +165,8 @@ class AudioFeatures(Base):
 
     # the 'audio_features' attribute in TopTrack associates TopTrack to AudioFeatures
     track = relationship('TopTrack', back_populates = 'audio_features')
+
+    artist = relationship('Artist', secondary = artist_track_table, back_populates = 'track')
 
 class Concert(Base):
     __tablename__ = 'concerts'

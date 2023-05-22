@@ -23,6 +23,12 @@ After creating and activating the virtual environment, you can use the command b
 	$ pip install -r requirements.txt
 I used ‘pip3.10’ instead of ‘pip’ to install packages and store the contents in the python3.10 site-packages location within the virtual environment.
 
+## Airflow
+
+I did not include the airflow configuration files to exclude any personal information. However, in order to eventually run the DAG, you want to make some revisions to your 'airflow.cfg' file. You want to include your database connection string, which is automatically set to a mysql one when you first install airflow, but I recommend setting this to your postgresql database (under [database]). Also, the executor under [core] should be changed from SequentialExecutor to LocalExecutor. I also recommend setting parallelism to the number of CPU cores on your machine.
+
+Please consult apach airflow documentation for more details.
+
 ## Credentials
 There are different options to include the needed credentials in the scripts. 
 
