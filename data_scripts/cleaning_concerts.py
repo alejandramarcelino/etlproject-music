@@ -30,6 +30,8 @@ df['performer'] = df['performer'].replace(r'\nPerformer:\n\n\n|\n\n\n',"",regex=
 # address the excess trailing \t with 'and More>>' for artists not mentioned
 df['performer']=df['performer'].replace(r', \t*and More >>',', others', regex=True)
 
+df['performer']=df['performer'].replace(r'\t*·','', regex=True)
+
 # remove 'Venue' and new line characters
 df[['venue','location']]=df['venue'].replace(r'\nVenue:\n\n',"",regex=True).str.split(pat='\n',n=1,expand=True)
 
@@ -80,7 +82,10 @@ df['time'] = pd.to_datetime(df['time'],format= '%I:%M%p').dt.time
 # move id to first column
 df.insert(0,'concert_id',df.pop('concert_id'))
 
+df['ranking'] = df['ranking'].str.strip()
+
 df = df.replace({pd.NaT: None})
+
 # pd.reset_option("display.max_rows")
 # pd.set_option("display.max_columns",None)
 

@@ -161,6 +161,10 @@ cython_debug/
 
 # Some files to ignore
 pipeline.conf
+alembic.ini
+*/alembic
+*/alembic/versions/*
+*/env.py
 
 # Some computer generate ones
 .DS_Store

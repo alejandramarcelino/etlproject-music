@@ -8,7 +8,6 @@ import pandas as pd
 import boto3
 import pickle
 from datetime import datetime
-#import pprint
 
 # assuming the 'pipeline.conf' file is in the same location as the 'pipeline_template.conf' file
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -90,7 +89,8 @@ for rank, track in enumerate(tracks['items']):
                    'album_popularity': album_popularity,
                    'album_release_date': album_release,
                    'album_total_tracks': album_total_tracks,
-                   'album_artists_ids': album_artists_id}
+                   'album_artists_ids': album_artists_id,
+                   'album_type': album_type}
     albums_data.append(rows_albums)
 
     rows_feats = {'track_id': track_id,
@@ -115,70 +115,11 @@ artists_df = pd.DataFrame(artists_data)
 albums_df = pd.DataFrame(albums_data)
 audio_feats_df = pd.DataFrame(tracks_info)
 
-#before pickle and S3, need to break up columns containing arrays/lists
-
-# Ultimately want to make it easy to query artists
-
-# Will make each entry in the artists column have the same length was the max amount
-# and fill the empty positions with 'None' so that pgsql can make sense of it
-
-# first get largest amount of artists
-max_artists_track = top50_df['artists_ids'].apply(len).max()
-max_artists_album = albums_df['album_artists_ids'].apply(len).max()
-
-
-# temp f(list in column entry) = ((max_artists_track - len(list in 'artists_ids' column entry)) * [None]) + x
-# temp g(list in column entry) = ((max_artists_album - len(list in 'album_artists_ids' column entry)) * [None]) + x
-# Note: Use [None] to get in form of list
-# we + x because we want to add None values on to each list to make them equal in len
-
-# apply functions to the specified columns
-
-top50_df['artists_ids'] = top50_df['artists_ids'].apply(lambda x: x + ((max_artists_track - len(x)) * [None]))
-
-albums_df['album_artists_ids'] = albums_df['album_artists_ids'].apply(lambda x: x + ((max_artists_album - len(x)) * [None]))
-
-# can use .apply(pd.Series) on each column; it would create a separate dataframe, so would need to concat and drop old
-# same process with .to_list() but .to_list() is more efficient
-# .to_list() may need the lists to be the same lenght, but not neccessarily the case with pd.Series (double check if this is the cas)
-
-# To set the new column names
-top50_artists_cols = [f'artist{i + 1}' for i in range(max_artists_track)]
-albums_artists_cols = [f'artist{i + 1}' for i in range(max_artists_album)]
-
-top50_new = pd.DataFrame(top50_df['artists_ids'].to_list(), columns=top50_artists_cols)
-top50_df = pd.concat([top50_df, top50_new], axis=1)
-top50_df = top50_df.drop(columns='artists_ids')
-
-albums_new = pd.DataFrame(albums_df['album_artists_ids'].to_list(), columns=albums_artists_cols)
-albums_df = pd.concat([albums_df,albums_new], axis=1)
-albums_df = albums_df.drop(columns='album_artists_ids')
-
-# want to drop duplicates to be able to set PK when creating table in database
+# want to drop duplicates
+# will leave this but not needed due to use of merge() from sqlalchemy
 artists_df = artists_df.iloc[artists_df.astype(str).drop_duplicates().index]
-albums_df = albums_df.drop_duplicates()
-audio_feats_df = audio_feats_df.drop_duplicates()
-
-# # if we took the pd.Series approach, process below is to rename columns
-# # get_loc accepts value as input and gets index of where the value is given
-# # want location/index of artist column amongst the columns
-# top50_index = top50_df.columns.get_loc('artists_ids')
-# albums_index = albums_df.columns.get_loc('albums_artists_ids')
-
-# # To create map from old to new column names
-# # Will use .iloc to get subset of columns we want to focus on to rename
-# # Using zip will help us create dictionary or generally the map we want
-# # can use range(max_artists_track) since we will slice dataframe to isolate the desired columns
-# top50_cols_map = dict(zip(range(max_artists_track),top50_artists_cols))
-# albums_cols_map = dict(zip(range(max_artists_album),albums_artists_cols))
-
-# #python slicing is exclusive with end value
-# top50_subset = top50_df.iloc[:, top50_index: top50_index + max_artists_track]
-# albums_subset = albums_df.iloc[:, albums_index: albums_index + max_artists_album]
-
-# top50_subset = top50_subset.rename(columns=top50_cols_map)
-# albums_subset = albums_subset.rename(columns=albums_cols_map)
-
+albums_df = albums_df.iloc[albums_df.astype(str).drop_duplicates().index]
+audio_feats_df = audio_feats_df.iloc[audio_feats_df.astype(str).drop_duplicates().index]
 
 # convert dataframes to pickle files
 pickled_top50_df = pickle.dumps(top50_df)

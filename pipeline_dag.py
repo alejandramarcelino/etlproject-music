@@ -39,7 +39,7 @@ clean_concerts_task = BashOperator(
 	dag=dag,
 )
 
-gett_spotify_task = BashOperator(
+get_spotify_task = BashOperator(
 	task_id='getting_spotify_info',
 	bash_command='python3.10 <absolute path of spotify_data.py>',
 	dag=dag,
@@ -51,10 +51,18 @@ data_dict_task = BashOperator(
 	dag=dag,
 )
 
+database_task = BashOperator(
+	task_id='creating_data_databse',
+	bash_command='python3.10 <absolute path of database.py>',
+	dag=dag,
+)
 
-extract_urls_task >> extract_concerts_task >> clean_concerts_task # >> upload to database
-get_spotify_task >> data_dict_task #>> upload to database
+data_transfer_task = BashOperator(
+	task_id='uploading_to_database',
+	bash_command='python3.10 <absolute path of data_transfer.py>',
+	dag=dag,
+)
 
-#upload to database >> scripts related to database 
-
-
+extract_urls_task >> extract_concerts_task >> clean_concerts_task >> database_task
+get_spotify_task >> data_dict_task >> database_task
+database_task >> data_transfer_task
