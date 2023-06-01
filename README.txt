@@ -51,6 +51,7 @@ Some additional things needed:
 - The URL string to connect to your database when creating engine using SQLAlchemy (assuming you have a database created already with PostgreSQL)
 - AWS account, an S3 bucket, an IAM user with the appropriate permissions (e.g. AmazonS3FullAccess)
 	-Note: If you decide to use an EC2 instance, will need IAM user to give access permission (e.g.AmazonEC2FullAccess) and need the secret key/access key information to connect to the instance, via AWS CLI. Refer to documentation to get more information on different options/methods for using this service in general.
+- A useful tool: I recommend using Alembic to help generate migration scripts, if you want to make any changes to the database (i.e. the database schema).
 
 ## Ways to contribute
 All of the scripts are running and functional, including the database files. The database files include creating the tables and relations, and inserting new data each day while abiding by the defined integrity constraints.
