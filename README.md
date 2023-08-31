@@ -1,4 +1,5 @@
-# Setting Up an ETL Pipeline Involving Music Data Using Airflow and PostgreSQL
+# Setting Up an ETL Pipeline
+**Using music data, Airflow, and PostgreSQL**
 
 An ETL pipeline to determine whether concerts have an influence in music popularity trends, including current top songs and artists.
 
